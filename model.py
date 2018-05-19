@@ -1,15 +1,17 @@
 import csv
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
-
-prefix = './ds_udacity/data'
-#prefix = './ds1'
+#prefix = './ds_udacity/data'
+prefix = './ds1'
 lines = []
 with open(prefix + '/driving_log.csv') as csvfile:
     reader = csv.reader(csvfile)
     for line in reader:
         lines.append(line)
+
+nrows,ncols = 160, 320
 
 images = []
 measurements = []
@@ -18,6 +20,8 @@ for line in lines[1:]:
     filename = source_path.split('/')[-1]
     current_path = prefix + '/IMG/' + filename
     image = cv2.imread(current_path)
+    image = image[nrows//2:nrows, :]
+    plt.imshow(image)
     images.append(image)
     measurement = float(line[3])
     measurements.append(measurement)
@@ -25,6 +29,7 @@ for line in lines[1:]:
 X_train = np.array(images)
 y_train = np.array(measurements)
 
+raise RuntimeError("...")
 
 from keras.models import Sequential, Model
 from keras.layers.core import Dense, Dropout, Activation, Flatten, Reshape
@@ -33,7 +38,7 @@ from keras.layers.convolutional import Convolution2D
 from keras.optimizers import SGD, Adam, RMSprop
 
 
-nrows,ncols = 160, 320
+
 model = Sequential()
 
 # took from https://github.com/0bserver07/Nvidia-Autopilot-Keras/blob/master/model.py
