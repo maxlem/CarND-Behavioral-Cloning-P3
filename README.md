@@ -1,125 +1,107 @@
-# Behaviorial Cloning Project
+# **Behavioral Cloning** 
 
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+## Writeup by Maxime Lemonnier
 
-Overview
----
-This repository contains starting files for the Behavioral Cloning Project.
+### Files Submitted & Code Quality
 
-In this project, you will use what you've learned about deep neural networks and convolutional neural networks to clone driving behavior. You will train, validate and test a model using Keras. The model will output a steering angle to an autonomous vehicle.
+#### 1. Required Files
 
-We have provided a simulator where you can steer a car around a track for data collection. You'll use image data and steering angles to train a neural network and then use this model to drive the car autonomously around the track.
+My project includes the following files:
 
-We also want you to create a detailed writeup of the project. Check out the [writeup template](https://github.com/udacity/CarND-Behavioral-Cloning-P3/blob/master/writeup_template.md) for this project and use it as a starting point for creating your own writeup. The writeup can be either a markdown file or a pdf document.
+* model.py allows to create the model, prepare the dataset for training, and train the model.
+* drive.py modified to convert images to YUV color space and fitted with a full PID
+* model.h5 containing a trained convolution neural network inspired from this [paper](https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf).
+* video.mp4 presenting a successful run on the first track.
+* writeup_report.md: this file
 
-To meet specifications, the project will require submitting five files: 
-* model.py (script used to create and train the model)
-* drive.py (script to drive the car - feel free to modify this file)
-* model.h5 (a trained Keras model)
-* a report writeup file (either markdown or pdf)
-* video.mp4 (a video recording of your vehicle driving autonomously around the track for at least one full lap)
-
-This README file describes how to output the video in the "Details About Files In This Directory" section.
-
-Creating a Great Writeup
----
-A great writeup should include the [rubric points](https://review.udacity.com/#!/rubrics/432/view) as well as your description of how you addressed each point.  You should include a detailed description of the code used (with line-number references and code snippets where necessary), and links to other supporting documents or external references.  You should include images in your writeup to demonstrate how your code works with examples.  
-
-All that said, please be concise!  We're not looking for you to write a book here, just a brief description of how you passed each rubric point, and references to the relevant code :). 
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup.
-
-The Project
----
-The goals / steps of this project are the following:
-* Use the simulator to collect data of good driving behavior 
-* Design, train and validate a model that predicts a steering angle from image data
-* Use the model to drive the vehicle autonomously around the first track in the simulator. The vehicle should remain on the road for an entire loop around the track.
-* Summarize the results with a written report
-
-### Dependencies
-This lab requires:
-
-* [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit)
-
-The lab enviroment can be created with CarND Term1 Starter Kit. Click [here](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) for the details.
-
-The following resources can be found in this github repository:
-* drive.py
-* video.py
-* writeup_template.md
-
-The simulator can be downloaded from the classroom. In the classroom, we have also provided sample data that you can optionally use to help train your model.
-
-## Details About Files In This Directory
-
-### `drive.py`
-
-Usage of `drive.py` requires you have saved the trained model as an h5 file, i.e. `model.h5`. See the [Keras documentation](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model) for how to create this file using the following command:
-```sh
-model.save(filepath)
-```
-
-Once the model has been saved, it can be used with drive.py using this command:
-
+#### 2. Quality of Code
+Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
 python drive.py model.h5
 ```
+Note that the simulator has only been tested at 1024x768, with fastest quality settings. It has been found crucial that for the second track the framerate is sufficient for the pid controller to be able to stabilize. 
 
-The above command will load the trained model and use the model to make predictions on individual images in real-time and send the predicted angle back to the server via a websocket connection.
 
-Note: There is known local system's setting issue with replacing "," with "." when using drive.py. When this happens it can make predicted steering values clipped to max/min values. If this occurs, a known fix for this is to add "export LANG=en_US.utf8" to the bashrc file.
+#### 3. Submission code is usable and readable
 
-#### Saving a video of the autonomous agent
+All the relevant code is part of model.py. The file is divided in 2 sections:
 
-```sh
-python drive.py model.h5 run1
-```
+* The first section contains a data distribution analysis as well as some data reorganisation necessary for the training phase.
+* The second section contains code to split the organised data into a train and validation datasets. No test dataset was considered necessary. A model creation function and a data generator function are defined and then used. Finally, the model is compiled, trained saved, and its learning curve is anaylsed.   
 
-The fourth argument, `run1`, is the directory in which to save the images seen by the agent. If the directory already exists, it'll be overwritten.
+### Model Architecture and Training Strategy
 
-```sh
-ls run1
+#### 1. An appropriate model architecture has been employed
 
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_424.jpg
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_451.jpg
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_477.jpg
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_528.jpg
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_573.jpg
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_618.jpg
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_697.jpg
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_723.jpg
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_749.jpg
-[2017-01-09 16:10:23 EST]  12KiB 2017_01_09_21_10_23_817.jpg
-...
-```
+Various models were tried. Starting with a LeNet variation ending with a trimmed-down version of the [nvidia model](https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf].
 
-The image file name is a timestamp of when the image was seen. This information is used by `video.py` to create a chronological video of the agent driving.
+#### 2. Attempts to reduce overfitting in the model
 
-### `video.py`
+Various method were experimented to reduce overfitting, including adding dropout layers, using weights L2-normalization, using max pooling layers, as well as adding more data, and reducing the number of weights. None of theese effort seemed, at first, to have a significant impact: the car would, at best, fail a little bit after the bridge. In the end only weights normalisation was kept (model.py, function ```nvidia_model()```). 
 
-```sh
-python video.py run1
-```
+#### 3. Model parameter tuning
 
-Creates a video based on images found in the `run1` directory. The name of the video will be the name of the directory followed by `'.mp4'`, so, in this case the video will be `run1.mp4`.
+The model used an adam optimizer. No learning rate tuning seemed necessary.
 
-Optionally, one can specify the FPS (frames per second) of the video:
+#### 4. Appropriate training data
 
-```sh
-python video.py run1 --fps 48
-```
+The final dataset was generated using the mouse to reduce measurement alias, and comprized more than 3 laps in each direction and one lap of recovery driving in each direction. For regions where the dataset was scarse (generally, for sharper steering angles), all 3 images were only used and other data augmentation tecnhiques were used, namely, image flipping as proposed in the classroom, random global brightness transformation, ramdom circle shadows (shown below, see function random_morph() in model.py). 
+<img src="./data_aug_ref_yuv.png" title="reference">
+<img src="./data_aug_circle_yuv.png" title="circle">
+<img src="./data_aug_result_yuv.png" title="result">
 
-Will run the video at 48 FPS. The default FPS is 60.
+### Model Architecture and Training Strategy
 
-#### Why create a video
+#### 1. Solution Design Approach
 
-1. It's been noted the simulator might perform differently based on the hardware. So if your model drives succesfully on your machine it might not on another machine (your reviewer). Saving a video is a solid backup in case this happens.
-2. You could slightly alter the code in `drive.py` and/or `video.py` to create a video of what your model sees after the image is processed (may be helpful for debugging).
+I iterated on various architectures and variations, always consisting of a convolution pipeline, followed with a dense pipeline. The car would always fail at some point on the track and, no matter how much data I added, no matter what regularization technique I used (dropout, l2-normalisation, add more data), no matter how long/fast I trained, reducing the validation error was not translating into improved performance on the track. Then, I did what one should always do first : I looked at the dataset distribution. I noticed two things:
 
-### Tips
-- Please keep in mind that training images are loaded in BGR colorspace using cv2 while drive.py load images in RGB to predict the steering angles.
+* Some of my acquisitions contained *only* 0 angles. I realized I forgot to start the simulator from the command line, and thus ```export LANG=en_US.utf8``` was not performed and angles values were ignored. I estimate failing to realize this sent me in the wrong track for a good 10 hours.
+* The rest of the acquisitions were *heavily* concentrated around 0, as shown below.
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+<img src="./hist_orig.png" title="reference" height="96" width="96">
+
+So I went on the path of flatteing my data distribution, with the self-imposed constraint of throwing away as little data as possible. More on that topic in section 3. With the proper dataset, my simplified nVidia-inspired model succeeded right away, with only 2 epochs of training. The car was wobbling a lot, I suspected it was because my dataset was now unaturally concentrated on sharp-angles values. Then I tried the second track, and, after lowering the set speed to 5 mph, the car would stay on track, but sometime stall in a slope. I tried adding a derivative factor to the PI controller, but then I realized that, with the quality settings at "fantastic", my laptop GPU was underpowered, and the lag between frames would destabilize the throttle controller. So I tried with "fastest" and, to my great surprized I completed a lap at 9 mph on the second track, even tough I had very little training data (~10%) on this track. 
+
+
+#### 2. Final Model Architecture
+
+The final model architecture (function ```nvidia_model()``` in model.py) consisted of a convolution neural network with the following details:
+
+Layer (type) | Output Shape |Param # | other notes                     
+:---------:|:---------:|:---------:|:---------:
+cropping2d_1 (Cropping2D)        |(None, 65, 320, 3)   | 0         |  input_shape=(160,320,3)         
+lambda_1 (Lambda)                |(None, 65, 320, 3)   | 0         |           
+convolution2d_1 (Convolution2D)  |(None, 31, 158, 16)  | 1216      |  relu activation, (16,5,5) kernel, (2,2) stride, valid borders, l2 normalisation       
+convolution2d_2 (Convolution2D)  |(None, 14, 77, 32)   | 12832     |  relu activation, (32,5,5) kernel, (2,2) stride, valid borders, l2 normalisation      
+convolution2d_3 (Convolution2D)  |(None, 12, 75, 64)   | 18496     |  relu activation, (64,3,3) kernel, (1,1) stride, valid borders, l2 normalisation       
+flatten_1 (Flatten)              |(None, 57600)        | 0         |           
+dense_1 (Dense)                  |(None, 100)          | 5760100   |  relu activation, l2 normalisation        
+dense_2 (Dense)                  |(None, 50)           | 5050      |  relu activation, l2 normalisation        
+dense_3 (Dense)                  |(None, 25)           | 1275      |  relu activation, l2 normalisation        
+dense_4 (Dense)                  |(None, 10)           | 260       |  relu activation, l2 normalisation        
+dense_5 (Dense)                  |(None, 1)            | 11        |  tanh activation, l2 normalisation        
+
+===================================================================================================
+Total params: 5,799,240
+____________________________________________________________________________________________________
+
+It can be seen as a simplified version of the nVidia model we talked earlier. In retrospect, I think that the defining factor had more to do with presenting the right dataset to the learning algorithm, than choosing the right model. That said, a model that would have used a rolling sequence of images or a recursive model such as an RNN or an LSTM could have worked much better. Yet, the optimal AI tool for the job would have been deep reinforcement learning, provided some alteration to the simulation engine, such as knowing when the car is on the road, and when its not.
+
+This model still has 5.8M parameters so we must be careful for overfitting. Which is why we added *l2*-normalisation to each parametric layer.
+
+#### 3. Creation of the Training Set & Training Process
+
+Final dataset was generated using the mouse, driving more than 3 laps in each direction on the first track, then doing some recovery captures. 2 more laps were added from the second track. Knowing there was a small-angle bias on the dataset, I only added left and right images for angles > 0.15, correcting central steering angle by +/- .2, as advised by udacity. I then computed steering angles mean and standard variation, which I used to clip original dataset's histogram to create a *target* histogram, I did not remove any sample yet, only drew up a desired histogram. See model.py line 70 for more details. I obtained the following histogram:
+<img src="./hist_target.png" alt="raw" title="reference" height="96" width="96">
+
+This histogram would then be used by the dataset generator function to draw samples and augment dataset accordingly. Note that *all* dataset was still available to the generator function, which would, for each slice of the dataset (let's call it the *candidate batch*), shuffle the *candidate batch*, and then add samples in each of the target histogram's bin, potentially using one (image flipping) or two (image alteration) data augmentation techniques, until each bin was full and/or ```batch_size``` was reached. So it had for result that, for each augmented sample, a sample in the *candidate batch* would remain unused. Statistically, unused samples would belong small angles bins. The end result is a bit of an abuse of the *epoch* concept, since batch *n* of epoch *m*, would almost certainly be different from batch *n* of any other epoch, especially for samples in crowded bins.
+
+The model trained during 10 epochs, using 14464 original samples, and obtained the following history:
+<img src="./train_history.png" title="result">
+
+We can see that error would continue going down if we added more epochs. Using the resulting model allowed the car to run as many laps as wanted on both tracks without problems, other than a rather woobly behavior, especially on track one.
+
+I could have improved the smoothness of the drive by tweaking my target distribution but I lost so much time on the ',' vs '.' issue that I'm out of budget.
+
 

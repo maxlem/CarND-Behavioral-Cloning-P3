@@ -3,7 +3,7 @@ import base64
 from datetime import datetime
 import os
 import shutil
-
+import cv2
 import numpy as np
 import socketio
 import eventlet
@@ -22,13 +22,15 @@ model = None
 prev_image_array = None
 
 
-class SimplePIController:
-    def __init__(self, Kp, Ki):
+class SimplePIDController:
+    def __init__(self, Kp, Kd, Ki):
         self.Kp = Kp
+        self.Kd = Kd
         self.Ki = Ki
         self.set_point = 0.
         self.error = 0.
         self.integral = 0.
+        self.p_error =0
 
     def set_desired(self, desired):
         self.set_point = desired
@@ -39,11 +41,16 @@ class SimplePIController:
 
         # integral error
         self.integral += self.error
+        
+        # derivative of the error
+        d = self.error - self.p_error
+        
+        self.p_error = self.error
+        
+        return self.Kp * self.error + self.Kd*d + self.Ki * self.integral
 
-        return self.Kp * self.error + self.Ki * self.integral
 
-
-controller = SimplePIController(0.1, 0.002)
+controller = SimplePIDController(0.2, 0.01, 0.004)
 set_speed = 9
 controller.set_desired(set_speed)
 
@@ -61,12 +68,12 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
+        steering_angle = float(model.predict(cv2.cvtColor(image_array, cv2.COLOR_RGB2YUV)[None, :, :, :], batch_size=1))
 
         throttle = controller.update(float(speed))
 
         print(steering_angle, throttle)
-        send_control(steering_angle, throttle)
+        send_control(9/set_speed*steering_angle, throttle)
 
         # save frame
         if args.image_folder != '':
